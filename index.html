@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrôle des Stimulations & Vidéo</title>
+    <style>
+        body { 
+            text-align: center; 
+            font-family: Arial, sans-serif; 
+            background-color: #f4f4f9; 
+            padding: 20px;
+        }
+        button { 
+            padding: 10px 20px; 
+            margin: 10px; 
+            font-size: 25px; 
+            cursor: pointer; 
+            background-color: #45a049; 
+            color: white; 
+            border: none; 
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table { 
+            margin-top: 20px; 
+            width: 80%; 
+            margin-left: auto; 
+            margin-right: auto;
+            border-collapse: collapse;
+            background-color: white;
+        }
+        th, td { 
+            padding: 12px; 
+            text-align: center; 
+            border: 1px solid #ddd;
+        }
+        th { 
+            background-color: #4CAF50; 
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        img { 
+            margin-top: 20px; 
+            border: 2px solid #ddd; 
+        }
+        label, select, input {
+            font-size: 20px;
+            margin: 10px;
+        }
+        .control-container {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Configuration des Stimulations</h1>
+
+    <div class="control-container">
+        <label for="couleur">Couleur :</label>
+        <select id="couleur">
+            <option value="255,0,0">Rouge</option>
+            <option value="0,255,0">Vert</option>
+            <option value="0,0,255">Bleu</option>
+            <option value="255,255,0">Jaune</option>
+            <option value="0,255,255">Cyan</option>
+            <option value="255,0,255">Magenta</option>
+            <option value="255,255,255">Blanc</option>
+        </select>
+
+        <label for="brightness">Luminosité :</label>
+        <select id="brightness">
+            <option value="24">Faible</option>
+            <option value="255">Haute</option>
+        </select>
+
+        <label for="duree">Durée (ms) :</label>
+        <input type="number" id="duree" value="1000" min="100">
+
+        <label for="mode">Mode :</label>
+        <select id="mode">
+            <option value="normal">Normal</option>
+            <option value="pulse">Pulsée</option>
+        </select>
+
+        <label for="pause">Pause entre stimulations (s) :</label>
+        <input type="number" id="pause" value="1" min="0.1" step="0.1">
+        
+        <label for="quantite">Quantité :</label>
+        <input type="number" id="quantite" value="1" min="1">
+    </div>
+
+    <button onclick="ajouterStimulation()">
+       <i class="fa-solid fa-circle-plus"></i> Ajouter la stimulation
+    </button>
+
+    <h3>Stimulations enchaînées</h3>
+    <table id="stimulations-table">
+        <thead>
+            <tr>
+                <th>Couleur</th>
+                <th>Luminosité</th>
+                <th>Durée (ms)</th>
+                <th>Mode</th>
+                <th>Pause (s)</th>
+                <th>Quantité</th>
+                <th>Supprimer</th>
+                <th>Supprimer la ligne</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stim in stimulations %}
+            <tr>
+                <td>{{ stim['couleur'] }}</td>
+                <td>{{ stim['brightness'] }}</td>
+                <td>{{ stim['duration'] }}</td>
+                <td>{{ stim['mode'] }}</td>
+                <td>{{ stim['pause'] }}</td>
+                <td>{{ stim['count'] }}</td>
+                <td>
+                    <button onclick="supprimerStimulation({{ loop.index0 }})">
+                        <i class="fa-solid fa-minus"></i> Retirer une
+                    </button>
+                </td>
+                <td>
+                    <button onclick="supprimerLigneStimulation({{ loop.index0 }})">
+                        <i class="fa-solid fa-trash"></i> Supprimer la ligne
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button onclick="lancerStimulations()">
+             <i class="fa-solid fa-play"></i> Lancer les stimulations
+    </button>
+    <button onclick="stopStimulations()">
+             <i class="fa-solid fa-stop"></i> Arrêter les stimulations
+    </button>
+
+    <h3>Contrôle de l'enregistrement vidéo</h3>
+
+    <label for="nom-video">Nom du fichier :</label>
+    <input type="text" id="nom-video" placeholder="ex: test_video">
+    <p id="message-enregistrement"></p>
+
+    <button onclick="startRecording()">
+          <i class="fa-solid fa-video"></i> Démarrer l'enregistrement
+    </button>
+    <button onclick="stopRecording()">
+          <i class="fa-solid fa-video-slash"></i> Arrêter l'enregistrement
+    </button>
+    <p id="message-enregistrement"></p>
+
+    <h3>Vidéo : Couleur (à gauche) | Noir et Blanc (à droite)</h3>
+    <img src="{{ url_for('video_feed') }}" width="1720" height="850">
+
+
+    <script>
+        function ajouterStimulation() {
+            const couleur = document.getElementById("couleur").value;
+            const brightness = document.getElementById("brightness").value;
+            const duree = document.getElementById("duree").value;
+            const mode = document.getElementById("mode").value;
+            const pause = parseFloat(document.getElementById("pause").value);
+            const quantite = parseInt(document.getElementById("quantite").value, 10);
+
+            // Conversion de la pause en millisecondes
+            const pause_ms = pause * 1000;
+
+            fetch("/ajouter_stimulation", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `couleur=${couleur}&brightness=${brightness}&duree=${duree}&mode=${mode}&pause=${pause_ms}&quantite=${quantite}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateStimulations(data.stimulations);
+            });
+        }
+
+        function supprimerStimulation(index) {
+            fetch("/supprimer_stimulation", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `index=${index}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateStimulations(data.stimulations);
+            });
+        }
+        
+        function supprimerLigneStimulation(index) {
+            fetch("/supprimer_ligne_stimulation", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `index=${index}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateStimulations(data.stimulations);
+            });
+        }
+
+        function updateStimulations(stimulations) {
+            const table = document.getElementById("stimulations-table").getElementsByTagName('tbody')[0];
+            table.innerHTML = "";
+            stimulations.forEach((stim, index) => {
+                const row = table.insertRow();
+                row.innerHTML = `
+                    <td>${stim.couleur}</td>
+                    <td>${stim.brightness}</td>
+                    <td>${stim.duration}</td>
+                    <td>${stim.mode}</td>
+                    <td>${(stim.pause / 1000).toFixed(1)}</td> <!-- Pause convertie en secondes -->
+                    <td>${stim.count}</td>  <!-- Affichage du compteur -->
+                    <td><button onclick="supprimerStimulation(${index})">
+                          <i class="fa-solid fa-minus"></i> Retirer une
+                    </button></td>
+                    <td><button 
+                    onclick="supprimerLigneStimulation(${index})">
+                        <i class="fa-solid fa-trash"></i> Supprimer la ligne
+                    </button></td>
+               `;
+           });
+       }
+
+        function lancerStimulations() {
+            fetch("/lancer_stimulations", { method: "POST" })
+        }
+        
+        function stopStimulations() {
+            fetch("/stop_stimulations", { method: "POST" });
+        }
+
+        function startRecording() {
+            const nomVideo = document.getElementById("nom-video").value.trim();
+    
+            if (!nomVideo) {
+                document.getElementById("message-enregistrement").innerText = "❌ Veuillez entrer un nom pour la vidéo.";
+                return;
+            }
+
+            fetch("/video", {
+                method: "POST",
+                body: new URLSearchParams({'action': 'start', 'nom_video': nomVideo})
+            })
+            .then(response => response.text())
+            .then(message => {
+                document.getElementById("message-enregistrement").innerText = `Enregistrement en cours : ${nomVideo}.avi`;
+            })
+            .catch(error => console.error("Erreur :", error));
+        }
+
+        function stopRecording() {
+            fetch("/video", {
+                method: "POST",
+                body: new URLSearchParams({'action': 'stop'})
+            })
+            .then(response => response.text())
+            .then(message => {
+                document.getElementById("message-enregistrement").innerText = "Enregistrement arrêté.";
+            })
+            .catch(error => console.error("Erreur :", error));
+        }
+    </script>
+</body>
+</html>
