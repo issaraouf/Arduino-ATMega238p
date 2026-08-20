@@ -1,275 +1,389 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contrôle des Stimulations & Vidéo</title>
+    <title>Stimulation Control - MNSB</title>
     <style>
-        body { 
-            text-align: center; 
-            font-family: Arial, sans-serif; 
-            background-color: #f4f4f9; 
-            padding: 20px;
-        }
-        button { 
-            padding: 10px 20px; 
-            margin: 10px; 
-            font-size: 25px; 
-            cursor: pointer; 
-            background-color: #45a049; 
-            color: white; 
-            border: none; 
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        table { 
-            margin-top: 20px; 
-            width: 80%; 
-            margin-left: auto; 
-            margin-right: auto;
-            border-collapse: collapse;
-            background-color: white;
-        }
-        th, td { 
-            padding: 12px; 
-            text-align: center; 
-            border: 1px solid #ddd;
-        }
-        th { 
-            background-color: #4CAF50; 
-            color: white;
-        }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        img { 
-            margin-top: 20px; 
-            border: 2px solid #ddd; 
-        }
-        label, select, input {
-            font-size: 20px;
-            margin: 10px;
-        }
-        .control-container {
-            margin-bottom: 20px;
-        }
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; height: 100vh; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f6; color: #333; display: flex; flex-direction: column; }
+        .top-bar { height: 50px; background: #ffffff; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.05); flex-shrink: 0; }
+        .dashboard-container { display: grid; grid-template-columns: 320px 1fr 500px; gap: 15px; padding: 15px; height: calc(100vh - 50px); }
+        .panel { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .panel-header { background: #f8fafc; padding: 10px 15px; font-size: 13px; font-weight: 600; color: #475569; border-bottom: 1px solid #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
+        .panel-content { padding: 15px; overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; gap: 10px; }
+        .form-row { display: flex; align-items: center; justify-content: space-between; }
+        .form-row label { font-size: 12px; font-weight: 500; color: #475569; width: 110px; }
+        .form-input { flex: 1; display: flex; gap: 5px; }
+        input, select { width: 100%; padding: 6px 8px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; transition: border 0.2s; }
+        input:focus, select:focus { border-color: #2563eb; }
+        button { background: #2563eb; color: #fff; border: none; padding: 8px 12px; font-size: 12px; font-weight: 600; border-radius: 4px; cursor: pointer; transition: background 0.2s; width: 100%; }
+        button:hover { background: #1d4ed8; }
+        .btn-danger { background: #dc2626; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-secondary { background: #64748b; }
+        .btn-secondary:hover { background: #475569; }
+        .btn-mini { padding: 4px 6px; font-size: 11px; width: auto; margin: 0 2px; }
+        .table-container { flex-grow: 1; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th, td { text-align: center; padding: 8px; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; color: #475569; position: sticky; top: 0; z-index: 10; font-weight: 600; border-bottom: 2px solid #cbd5e1; }
+        td[contenteditable="true"]:focus { background: #f1f5f9; outline: 1px solid #2563eb; border-radius: 2px; }
+        .video-feed { width: 100%; display: flex; justify-content: center; }
+        .video-feed img { width: 100%; height: auto; border-radius: 4px; border: 1px solid #cbd5e1; display: block; }
+        .spacer { flex-grow: 1; }
+        .section-title { font-size: 12px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
-    <h1>Configuration des Stimulations</h1>
-
-    <div class="control-container">
-        <label for="couleur">Couleur :</label>
-        <select id="couleur">
-            <option value="255,0,0">Rouge</option>
-            <option value="0,255,0">Vert</option>
-            <option value="0,0,255">Bleu</option>
-            <option value="255,255,0">Jaune</option>
-            <option value="0,255,255">Cyan</option>
-            <option value="255,0,255">Magenta</option>
-            <option value="255,255,255">Blanc</option>
-        </select>
-
-        <label for="brightness">Luminosité :</label>
-        <select id="brightness">
-            <option value="24">Faible</option>
-            <option value="255">Haute</option>
-        </select>
-
-        <label for="duree">Durée (ms) :</label>
-        <input type="number" id="duree" value="1000" min="100">
-
-        <label for="mode">Mode :</label>
-        <select id="mode">
-            <option value="normal">Normal</option>
-            <option value="pulse">Pulsée</option>
-        </select>
-
-        <label for="pause">Pause entre stimulations (s) :</label>
-        <input type="number" id="pause" value="1" min="0.1" step="0.1">
-        
-        <label for="quantite">Quantité :</label>
-        <input type="number" id="quantite" value="1" min="1">
+    <div class="top-bar">
+        <div class="signature-zone">
+            ESPCI-PSL CNRS Brain Plasticity Lab | MNSB Team
+        </div>
     </div>
 
-    <button onclick="ajouterStimulation()">
-       <i class="fa-solid fa-circle-plus"></i> Ajouter la stimulation
-    </button>
+    <div class="dashboard-container">
+        <div class="panel">
+            <div class="panel-header">Protocol Configuration</div>
+            <div class="panel-content">
+                <div class="form-row">
+                    <label for="color">Color</label>
+                    <div class="form-input">
+                        <select id="color">
+                            <option value="255,0,0">Red</option>
+                            <option value="0,255,0">Green</option>
+                            <option value="0,0,255">Blue</option>
+                            <option value="255,255,0">Yellow</option>
+                            <option value="0,255,255">Cyan</option>
+                            <option value="255,0,255">Magenta</option>
+                            <option value="255,255,255">White</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label for="brightness">Brightness</label>
+                    <div class="form-input">
+                        <select id="brightness">
+                            <option value="24">Low</option>
+                            <option value="255">High</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label for="mode">Mode</label>
+                    <div class="form-input">
+                        <select id="mode">
+                            <option value="normal">Normal</option>
+                            <option value="pulse">Pulsed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="section-title">Timings :</div>
+                <div class="form-row">
+                    <label>Record ON  (H:M:S)</label>
+                    <div class="form-input">
+                        <input type="number" id="recordon_h" value="0" min="0">
+                        <input type="number" id="recordon_m" value="0" min="0">
+                        <input type="number" id="recordon_s" value="0" min="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label>Light ON (H:M:S)</label>
+                    <div class="form-input">
+                        <input type="number" id="lighton_h" value="0" min="0">
+                        <input type="number" id="lighton_m" value="0" min="0">
+                        <input type="number" id="lighton_s" value="0" min="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label>Light OFF (H:M:S)</label>
+                    <div class="form-input">
+                        <input type="number" id="lightoff_h" value="0" min="0">
+                        <input type="number" id="lightoff_m" value="0" min="0">
+                        <input type="number" id="lightoff_s" value="0" min="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label>Record OFF (H:M:S)</label>
+                    <div class="form-input">
+                        <input type="number" id="recordoff_h" value="0" min="0">
+                        <input type="number" id="recordoff_m" value="0" min="0">
+                        <input type="number" id="recordoff_s" value="0" min="0">
+                    </div>
+                </div>
+                <button onclick="addStimulation()" style="margin-top: 10px;">Append to Sequence</button>
+                
+                <div style="margin: 15px 0 5px 0; border-bottom: 1px solid #e2e8f0;"></div>
+                
+                <div class="form-row">
+                    <div class="form-input" style="width: 100%;">
+                        <input type="file" id="csv-file" accept=".csv" style="padding: 4px;">
+                        <button class="btn-secondary" onclick="importCSV()" style="width: 80px;">Import</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <h3>Stimulations enchaînées</h3>
-    <table id="stimulations-table">
-        <thead>
-            <tr>
-                <th>Couleur</th>
-                <th>Luminosité</th>
-                <th>Durée (ms)</th>
-                <th>Mode</th>
-                <th>Pause (s)</th>
-                <th>Quantité</th>
-                <th>Supprimer</th>
-                <th>Supprimer la ligne</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for stim in stimulations %}
-            <tr>
-                <td>{{ stim['couleur'] }}</td>
-                <td>{{ stim['brightness'] }}</td>
-                <td>{{ stim['duration'] }}</td>
-                <td>{{ stim['mode'] }}</td>
-                <td>{{ stim['pause'] }}</td>
-                <td>{{ stim['count'] }}</td>
-                <td>
-                    <button onclick="supprimerStimulation({{ loop.index0 }})">
-                        <i class="fa-solid fa-minus"></i> Retirer une
-                    </button>
-                </td>
-                <td>
-                    <button onclick="supprimerLigneStimulation({{ loop.index0 }})">
-                        <i class="fa-solid fa-trash"></i> Supprimer la ligne
-                    </button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <div class="panel">
+            <div class="panel-header">Scheduled Sequence</div>
+            <div class="table-container">
+                <table id="stimulations-table">
+                    <thead>
+                        <tr>
+                            <th>Color</th>
+                            <th>Intensity</th>
+                            <th>Duration</th>
+                            <th>Mode</th>
+                            <th>Trigger</th>
+                            <th>Pre(s)</th>
+                            <th>Post(s)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stim in stimulations %}
+                        <tr>
+                            <td contenteditable="true" onblur="editStimulation({{ loop.index0 }}, 'color', this.innerText)">{{ stim['color'] }}</td>
+                            <td contenteditable="true" onblur="editStimulation({{ loop.index0 }}, 'brightness', this.innerText)">{{ stim['brightness'] }}</td>
+                            <td contenteditable="true" onblur="editStimulation({{ loop.index0 }}, 'duration', this.innerText)">{{ '%02d:%02d:%02d' | format(stim['duration'] // 3600000, (stim['duration'] % 3600000) // 60000, (stim['duration'] % 60000) // 1000) }}</td>
+                            <td contenteditable="true" onblur="editStimulation({{ loop.index0 }}, 'mode', this.innerText)">{{ stim['mode'] }}</td>
+                            <td contenteditable="true" onblur="editStimulation({{ loop.index0 }}, 'trigger_time', this.innerText)">{{ stim['trigger_time'] }}</td>
+                            <td contenteditable="true" onblur="editStimulation({{ loop.index0 }}, 'video_before', this.innerText)">{{ stim['video_before'] }}</td>
+                            <td contenteditable="true" onblur="editStimulation({{ loop.index0 }}, 'video_after', this.innerText)">{{ stim['video_after'] }}</td>
+                            <td>
+                                <button class="btn-secondary btn-mini" onclick="moveStimulation({{ loop.index0 }}, 'up')">↑</button>
+                                <button class="btn-secondary btn-mini" onclick="moveStimulation({{ loop.index0 }}, 'down')">↓</button>
+                                <button class="btn-danger btn-mini" onclick="deleteStimulation({{ loop.index0 }})">X</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    <button onclick="lancerStimulations()">
-             <i class="fa-solid fa-play"></i> Lancer les stimulations
-    </button>
-    <button onclick="stopStimulations()">
-             <i class="fa-solid fa-stop"></i> Arrêter les stimulations
-    </button>
+        <div class="panel">
+            <div class="panel-header">Execution & Monitoring</div>
+            <div class="panel-content">
+                <div class="video-feed">
+                    <img id="video-img" src="{{ url_for('_video_feed') }}">
+                    <div id="video-placeholder" style="display:none; padding: 30px 10px; text-align:center; font-size: 12px; color: #64748b; border: 1px dashed #cbd5e1; border-radius: 4px;">
+                        Recording in progress — live view paused
+                    </div>
+                </div>
 
-    <h3>Contrôle de l'enregistrement vidéo</h3>
+                <div class="spacer"></div>
 
-    <label for="nom-video">Nom du fichier :</label>
-    <input type="text" id="nom-video" placeholder="ex: test_video">
-    <p id="message-enregistrement"></p>
-
-    <button onclick="startRecording()">
-          <i class="fa-solid fa-video"></i> Démarrer l'enregistrement
-    </button>
-    <button onclick="stopRecording()">
-          <i class="fa-solid fa-video-slash"></i> Arrêter l'enregistrement
-    </button>
-    <p id="message-enregistrement"></p>
-
-    <h3>Vidéo : Couleur (à gauche) | Noir et Blanc (à droite)</h3>
-    <img src="{{ url_for('video_feed') }}" width="1720" height="850">
-
+                <div class="form-row">
+                    <label for="experiment_name">Experiment Name</label>
+                    <div class="form-input">
+                        <input type="text" id="experiment_name">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label>Start Delay (H:M:S)</label>
+                    <div class="form-input">
+                        <input type="number" id="delay_h" value="0" min="0">
+                        <input type="number" id="delay_m" value="0" min="0">
+                        <input type="number" id="delay_s" value="0" min="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label for="loop_count">Loop Count</label>
+                    <div class="form-input">
+                        <input type="number" id="loop_count" value="1" min="1">
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button onclick="_start_stimulations()">Start Execution</button>
+                    <button class="btn-danger" onclick="stopStimulations()">Stop</button>
+                </div>
+                <button class="btn-secondary" onclick="shutdownServer()" style="margin-top: 10px;">Shutdown Server</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        function ajouterStimulation() {
-            const couleur = document.getElementById("couleur").value;
-            const brightness = document.getElementById("brightness").value;
-            const duree = document.getElementById("duree").value;
-            const mode = document.getElementById("mode").value;
-            const pause = parseFloat(document.getElementById("pause").value);
-            const quantite = parseInt(document.getElementById("quantite").value, 10);
-
-            // Conversion de la pause en millisecondes
-            const pause_ms = pause * 1000;
-
-            fetch("/ajouter_stimulation", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: `couleur=${couleur}&brightness=${brightness}&duree=${duree}&mode=${mode}&pause=${pause_ms}&quantite=${quantite}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                updateStimulations(data.stimulations);
-            });
+        function _format_ms_to_hms(_ms) {
+            const _h = Math.floor(_ms / 3600000).toString().padStart(2, '0');
+            const _m = Math.floor((_ms % 3600000) / 60000).toString().padStart(2, '0');
+            const _s = Math.floor((_ms % 60000) / 1000).toString().padStart(2, '0');
+            return `${_h}:${_m}:${_s}`;
         }
 
-        function supprimerStimulation(index) {
-            fetch("/supprimer_stimulation", {
+        function _parse_hms_to_ms(_str) {
+            try {
+                const _parts = _str.split(':');
+                if (_parts.length === 3) {
+                    return (parseInt(_parts[0]) * 3600000) + (parseInt(_parts[1]) * 60000) + (parseInt(_parts[2]) * 1000);
+                }
+                return 0;
+            } catch (e) { return 0; }
+        }
+
+        function _hms_to_seconds(_prefix) {
+            const _h = parseInt(document.getElementById(`${_prefix}_h`).value) || 0;
+            const _m = parseInt(document.getElementById(`${_prefix}_m`).value) || 0;
+            const _s = parseInt(document.getElementById(`${_prefix}_s`).value) || 0;
+            return (_h * 3600) + (_m * 60) + _s;
+        }
+
+        function addStimulation() {
+            const _color = document.getElementById("color").value;
+            const _brightness = document.getElementById("brightness").value;
+            const _mode = document.getElementById("mode").value;
+
+            const _recordon_s = _hms_to_seconds("recordon");
+            const _lighton_s = _hms_to_seconds("lighton");
+            const _lightoff_s = _hms_to_seconds("lightoff");
+            const _recordoff_s = _hms_to_seconds("recordoff");
+
+            const _trigger_time = _lighton_s;
+            const _duration_ms = Math.max(0, (_lightoff_s - _lighton_s)) * 1000;
+            const _video_before = Math.max(0, _lighton_s - _recordon_s);
+            const _video_after = Math.max(0, _recordoff_s - _lightoff_s);
+
+            fetch("/add_stimulation", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `color=${_color}&brightness=${_brightness}&duration=${_duration_ms}&mode=${_mode}&trigger_time=${_trigger_time}&video_before=${_video_before}&video_after=${_video_after}`
+            })
+            .then(response => response.json())
+            .then(data => { updateStimulations(data.stimulations); });
+        }
+
+        function deleteStimulation(index) {
+            fetch("/delete_stimulation", {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: `index=${index}`
             })
             .then(response => response.json())
-            .then(data => {
-                updateStimulations(data.stimulations);
-            });
-        }
-        
-        function supprimerLigneStimulation(index) {
-            fetch("/supprimer_ligne_stimulation", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: `index=${index}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                updateStimulations(data.stimulations);
-            });
+            .then(data => { updateStimulations(data.stimulations); });
         }
 
         function updateStimulations(stimulations) {
-            const table = document.getElementById("stimulations-table").getElementsByTagName('tbody')[0];
-            table.innerHTML = "";
+            const _table = document.getElementById("stimulations-table").getElementsByTagName('tbody')[0];
+            _table.innerHTML = "";
             stimulations.forEach((stim, index) => {
-                const row = table.insertRow();
-                row.innerHTML = `
-                    <td>${stim.couleur}</td>
-                    <td>${stim.brightness}</td>
-                    <td>${stim.duration}</td>
-                    <td>${stim.mode}</td>
-                    <td>${(stim.pause / 1000).toFixed(1)}</td> <!-- Pause convertie en secondes -->
-                    <td>${stim.count}</td>  <!-- Affichage du compteur -->
-                    <td><button onclick="supprimerStimulation(${index})">
-                          <i class="fa-solid fa-minus"></i> Retirer une
-                    </button></td>
-                    <td><button 
-                    onclick="supprimerLigneStimulation(${index})">
-                        <i class="fa-solid fa-trash"></i> Supprimer la ligne
-                    </button></td>
+                const _row = _table.insertRow();
+                _row.innerHTML = `
+                    <td contenteditable="true" onblur="editStimulation(${index}, 'color', this.innerText)">${stim.color}</td>
+                    <td contenteditable="true" onblur="editStimulation(${index}, 'brightness', this.innerText)">${stim.brightness}</td>
+                    <td contenteditable="true" onblur="editStimulation(${index}, 'duration', this.innerText)">${_format_ms_to_hms(stim.duration)}</td>
+                    <td contenteditable="true" onblur="editStimulation(${index}, 'mode', this.innerText)">${stim.mode}</td>
+                    <td contenteditable="true" onblur="editStimulation(${index}, 'trigger_time', this.innerText)">${stim.trigger_time}</td>
+                    <td contenteditable="true" onblur="editStimulation(${index}, 'video_before', this.innerText)">${stim.video_before}</td>
+                    <td contenteditable="true" onblur="editStimulation(${index}, 'video_after', this.innerText)">${stim.video_after}</td>
+                    <td>
+                        <button class="btn-secondary btn-mini" onclick="moveStimulation(${index}, 'up')">↑</button>
+                        <button class="btn-secondary btn-mini" onclick="moveStimulation(${index}, 'down')">↓</button>
+                        <button class="btn-danger btn-mini" onclick="deleteStimulation(${index})">X</button>
+                    </td>
                `;
            });
        }
 
-        function lancerStimulations() {
-            fetch("/lancer_stimulations", { method: "POST" })
+        function importCSV() {
+            const _fileInput = document.getElementById('csv-file');
+            if (!_fileInput.files.length) { return; }
+            const _formData = new FormData();
+            _formData.append('file', _fileInput.files[0]);
+
+            fetch("/import_csv", { method: "POST", body: _formData })
+            .then(response => {
+                if (!response.ok) { return response.json().then(err => { throw new Error(err.error) }); }
+                return response.json();
+            })
+            .then(data => { updateStimulations(data.stimulations); })
+            .catch(error => { });
+        }
+
+        function editStimulation(index, field, value) {
+            let _val = value;
+            if (field === 'duration') { _val = _parse_hms_to_ms(value); }
+            fetch("/edit_stimulation", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `index=${index}&field=${field}&value=${_val}`
+            });
+        }
+
+        function moveStimulation(index, direction) {
+            fetch("/move_stimulation", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `index=${index}&direction=${direction}`
+            })
+            .then(response => response.json())
+            .then(data => { updateStimulations(data.stimulations); });
+        }
+
+        function _pauseLiveView() {
+            const _img = document.getElementById("video-img");
+            const _placeholder = document.getElementById("video-placeholder");
+            _img.style.display = "none";
+            _placeholder.style.display = "block";
+        }
+
+        function _resumeLiveView() {
+            const _img = document.getElementById("video-img");
+            const _placeholder = document.getElementById("video-placeholder");
+            _placeholder.style.display = "none";
+            _img.src = "{{ url_for('_video_feed') }}?t=" + Date.now();
+            _img.style.display = "block";
+        }
+
+        let _statusPollTimer = null;
+
+        function _pollStatus() {
+            fetch("/status")
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.running) {
+                        clearInterval(_statusPollTimer);
+                        _statusPollTimer = null;
+                        _resumeLiveView();
+                    }
+                })
+                .catch(() => {});
+        }
+
+        function shutdownServer() {
+            if (!confirm("Arrêter le serveur maintenant ?")) { return; }
+            fetch("/shutdown", { method: "POST" })
+                .then(() => {
+                    document.body.innerHTML = "<div style='padding:40px;font-family:sans-serif;'>Server stopped. You can close this tab.</div>";
+                })
+                .catch(() => {});
+        }
+
+        function _start_stimulations() {
+            let _name = document.getElementById("experiment_name").value.trim();
+            if (!_name) { 
+                _name = "Unnamed_Experiment"; 
+            }
+            
+            const _h = parseInt(document.getElementById("delay_h").value) || 0;
+            const _m = parseInt(document.getElementById("delay_m").value) || 0;
+            const _s = parseInt(document.getElementById("delay_s").value) || 0;
+            const _delay_val = (_h * 3600000) + (_m * 60000) + (_s * 1000);
+
+            const _loop_count = parseInt(document.getElementById("loop_count").value) || 1;
+
+            _pauseLiveView();
+            if (_statusPollTimer) { clearInterval(_statusPollTimer); }
+            _statusPollTimer = setInterval(_pollStatus, 1000);
+
+            fetch("/start_stimulations", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `experiment_name=${encodeURIComponent(_name)}&delay_ms=${_delay_val}&loop_count=${_loop_count}`
+            });
         }
         
-        function stopStimulations() {
-            fetch("/stop_stimulations", { method: "POST" });
-        }
-
-        function startRecording() {
-            const nomVideo = document.getElementById("nom-video").value.trim();
-    
-            if (!nomVideo) {
-                document.getElementById("message-enregistrement").innerText = "❌ Veuillez entrer un nom pour la vidéo.";
-                return;
-            }
-
-            fetch("/video", {
-                method: "POST",
-                body: new URLSearchParams({'action': 'start', 'nom_video': nomVideo})
-            })
-            .then(response => response.text())
-            .then(message => {
-                document.getElementById("message-enregistrement").innerText = `Enregistrement en cours : ${nomVideo}.avi`;
-            })
-            .catch(error => console.error("Erreur :", error));
-        }
-
-        function stopRecording() {
-            fetch("/video", {
-                method: "POST",
-                body: new URLSearchParams({'action': 'stop'})
-            })
-            .then(response => response.text())
-            .then(message => {
-                document.getElementById("message-enregistrement").innerText = "Enregistrement arrêté.";
-            })
-            .catch(error => console.error("Erreur :", error));
-        }
+        function stopStimulations() { fetch("/stop_stimulations", { method: "POST" }); }
     </script>
 </body>
 </html>
